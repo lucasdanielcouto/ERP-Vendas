@@ -72,24 +72,20 @@ describe('Criar cadastro de cliente', () => {
     });
     });
   
-    it('Deve acessar a página principal de vendas e entrar no cadastro de clientes', () => {
-     cy.visit('https://qualityld.odoo.com/odoo/sales').wait(3000);
-     cy.get('[data-hotkey="1"] > span').click(); //menu suspenso Pedidos
-     cy.get('[href="/odoo/customers"]').click().wait(3000); //clicar em Clientes
-    });
-
-
-    it('Criar novo cliente', () => {
+  
+    it('Deve acessar módulo de vendas e utilizar a função Criar novo cliente', () => {
       const now = new Date();
       nomeGerado = `Cliente ${now.getDate()}${now.getMonth() + 1} ${now.getHours()}${now.getMinutes()}`;
-      cnpjValido = gerarCNPJ();
+      cnpjValido = gerarCNPJ();//Gerar cnpj valido
 
-      cy.writeFile('cypress/fixtures/dadosGerados.json', { nome: nomeGerado, cnpj: cnpjValido });
+      cy.writeFile('cypress/fixtures/dadosGerados.json', { nome: nomeGerado, cnpj: cnpjValido }); //Guardar o cnpj no arquivo
       
 
-      cy.visit('https://qualityld.odoo.com/odoo/sales/customers').wait(3000);
+      cy.visit('https://qualityld.odoo.com/odoo/sales').wait(2500);
+      cy.get('[data-hotkey="1"] > span').click(); //menu suspenso Pedidos
+      cy.get('[href="/odoo/customers"]').click().wait(3000); //clicar em Clientes
       cy.get('.o_control_panel_main_buttons > .d-inline-flex > .btn').click(); //clicar em novo cliente
-      cy.get('h1 > .o_field_widget > .o-autocomplete > .o-autocomplete--input').type(nomeGerado)
+      cy.get('h1 > .o_field_widget > .o-autocomplete > .o-autocomplete--input').type(nomeGerado)//Inserir no campo  nome do cliente o nome gerado 
       
 
       cy.get('#street_name_0').type(cadastro.street); //rua 1
@@ -114,10 +110,21 @@ describe('Criar cadastro de cliente', () => {
 
       cy.get('#category_id_0').type(`${cadastro.Marcador1}`).wait(2000).type('{enter}').type(`${cadastro.Marcador2}`).wait(2000).type('{enter}').type(`${cadastro.Marcador3}`).wait(2000).type('{enter}');
         
+
+      cy.get(':nth-child(2) > .nav-link').click(); //Ir na aba Vendas e Compras
+
+      cy.get('#user_id_0').type('vendedor').wait(600).type('{enter}');
+      cy.get('#property_payment_term_id_0').type('15 dias').wait(600).type('{enter}');
+      cy.get('#property_inbound_payment_method_line_id_0').type('manual payment').wait(500).type('{enter}');
+      cy.get('#property_delivery_carrier_id_0').type('entrega padrão').wait(500).type('{enter}');
+
+
       cy.get('.d-inline-flex > .btn').click({force: true});//clicar em salvar cadastro de cliente 
       cy.wait(3000)
      
     });
+
+
 
   it('Verificar o cadastro salvo e verificar se os dados foram salvos corretamente', () => {
     cy.fixture('dadosGerados.json').then((dados) => {
@@ -147,6 +154,15 @@ describe('Criar cadastro de cliente', () => {
     cy.get('#mobile_0').should('have.value', cadastro.Celular);
     cy.get('#email_0').should('have.value', cadastro.Email);
     cy.get('#website_0').should('have.value', cadastro.Site);
+
+    //Aba Vendas e Compras
+    cy.get(':nth-child(2) > .nav-link').click(); //Ir na aba Vendas e Compras
+
+
+    cy.get('#user_id_0').should('have.value', 'Vendedor');
+    cy.get('#property_payment_term_id_0').should('have.value', '15 dias');
+    cy.get('#property_inbound_payment_method_line_id_0').should('have.value', 'Manual Payment (Banco)');
+    cy.get('#property_delivery_carrier_id_0').should('have.value', 'Entrega padrão')
 
  
     });
